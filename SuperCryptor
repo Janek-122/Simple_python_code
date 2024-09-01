@@ -1,0 +1,67 @@
+import base64
+import hashlib
+import random
+import string
+from cryptography.fernet import Fernet
+
+# Function to generate a Fernet key from a 4-letter code
+def generate_key(code):
+    assert len(code) == 3, "Code must be exactly 4 letters."
+    code = code.lower().encode()  # Convert to lower case and encode to bytes
+    sha256 = hashlib.sha256()
+    sha256.update(code)
+    return base64.urlsafe_b64encode(sha256.digest())
+
+# Function to encrypt a message with a custom 4-letter code
+def encrypt_message(message, code):
+    key = generate_key(code)
+    f = Fernet(key)
+    encrypted_message = f.encrypt(message.encode())
+    return encrypted_message.decode()
+
+# Function to decrypt a message with a custom 4-letter code
+def decrypt_message(encrypted_message, code):
+    try:
+        key = generate_key(code)
+        f = Fernet(key)
+        decrypted_message = f.decrypt(encrypted_message.encode())
+        return decrypted_message.decode()
+    except Exception as e:
+        return None
+
+# Function to generate a random 4-letter code
+def generate_random_code():
+    return ''.join(random.choices(string.ascii_letters, k=3))
+
+# Main menu loop
+def main():
+    while True:
+        print("1. Encrypt a message")
+        print("2. Decrypt a message")
+        print("3. Exit")
+        choice = input("Choose an option: ")
+
+        if choice == '1':
+            message = input("Enter the message to encrypt: ")
+            code = generate_random_code()
+            print(f"Generated 4-letter code: {code}")
+            encrypted_message = encrypt_message(message, code)
+            print(f"Encrypted message: {encrypted_message}")
+        elif choice == '2':
+            encrypted_message = input("Enter the encrypted message: ")
+            while True:
+                code = input("Enter the 4-letter code: ")
+                decrypted_message = decrypt_message(encrypted_message, code)
+                if decrypted_message is not None:
+                    print(f"Decrypted message: {decrypted_message}")
+                    break
+                else:
+                    print("Invalid code. Please try again.")
+        elif choice == '3':
+            print("Exiting...")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
